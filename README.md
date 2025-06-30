@@ -23,7 +23,7 @@ You can use either uv (recommended for speed) or pip.
 
 #### Using `uv`:
 ```bash
-  uv sync
+uv sync
 ```
 
 #### Using `pip`:
@@ -46,7 +46,7 @@ You can use either uv (recommended for speed) or pip.
 Copy the example environment file and fill in the necessary values:
 
 ```bash
-  cp .env.example .env
+cp .env.example .env
 ```
 
 Edit the `.env` file to set your environment variables. You can use the default values or customize them as needed.
@@ -57,7 +57,7 @@ Edit the `.env` file to set your environment variables. You can use the default 
 Start the Docker container with the following command:
 
 ```bash
-  docker-compose up --build
+docker-compose up --build
 ```
 This command will build the Docker image and start the container.
 
@@ -66,7 +66,7 @@ This command will build the Docker image and start the container.
 Set up the `docker-compose.yml` file to use GPU acceleration.
 
 ```bash
-  docker-compose up --build
+docker-compose up --build
 ```
 
 This command will build the Docker image and start the container with GPU support.

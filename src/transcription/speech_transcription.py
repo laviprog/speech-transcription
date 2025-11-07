@@ -1,12 +1,25 @@
 import gc
+import re
 
 import torch
 import whisperx
-from whisperx.asr import FasterWhisperPipeline
+from whisperx.asr import FasterWhisperPipeline, load_model
 from whisperx.types import SingleSegment
 
 from src.transcription import log
 from src.transcription.enums import Language, Model
+
+HALLUCINATION_PHRASES = [
+    "Субтитры делал DimaTorzok",
+    "Субтитры подогнал Симон",
+    "Редактор субтитров",
+    "Перевод",
+    "Субтитры сделал",
+    "субтитры",
+    "DimaTorzok",
+    "Targum",
+    "подогнал",
+]
 
 
 class SpeechTranscription:
@@ -76,16 +89,48 @@ class SpeechTranscription:
 
         log.debug("Loading model %s...", model_name)
         try:
+            asr_options = {
+                "temperature": 0.0,
+                "initial_prompt": "Это речевая транскрипция на русском языке без субтитров, водяных знаков и кредитов.",
+            }
+
+            vad_options = {
+                "chunk_size": 10,
+                "vad_onset": 0.500,
+                "vad_offset": 0.363,
+                "min_silence_duration_ms": 500,
+            }
             self.__cache[model_name] = whisperx.load_model(
                 whisper_arch=model_name,
                 device=self._device,
                 compute_type=self._compute_type,
                 download_root=self._download_root,
+                asr_options=asr_options,
+                vad_options=vad_options,
             )
             log.debug("Loaded model %s", model_name)
         except Exception as e:
             log.error("Failed to load model %s: %s", model_name, e)
             raise e
+
+    @staticmethod
+    def _clean_text(text: str) -> str:
+        if not text:
+            return text
+        for phrase in HALLUCINATION_PHRASES:
+            text = re.sub(re.escape(phrase), "", text, flags=re.IGNORECASE)
+        text = re.sub(r'\b(\w+)\s+\1\b', r'\1', text, flags=re.IGNORECASE)
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
+
+    def _filter_segments(self, segments: list[SingleSegment]) -> list[SingleSegment]:
+        filtered = []
+        for seg in segments:
+            if "text" in seg:
+                seg["text"] = self._clean_text(seg["text"])
+            if seg.get("text", "").strip():
+                filtered.append(seg)
+        return filtered
 
     def transcribe(
         self,
@@ -130,7 +175,12 @@ class SpeechTranscription:
             log.error("Failed to transcribe audio file %s: %s", audio_file, e)
             raise e
 
-        return result["segments"]
+        segments = result.get("segments", [])
+        filtered_segments = self._filter_segments(segments)
+
+        log.debug("Final segments after filtering: %d (из %d)", len(filtered_segments),
+                  len(segments))
+        return filtered_segments
 
     def clean(self) -> None:
         """

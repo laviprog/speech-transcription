@@ -3,7 +3,7 @@ import re
 
 import torch
 import whisperx
-from whisperx.asr import FasterWhisperPipeline, load_model
+from whisperx.asr import FasterWhisperPipeline
 from whisperx.types import SingleSegment
 
 from src.transcription import log

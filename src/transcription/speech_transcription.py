@@ -90,7 +90,7 @@ class SpeechTranscription:
         log.debug("Loading model %s...", model_name)
         try:
             asr_options = {
-                "temperature": 0.0,
+                "temperatures": [0.0],
                 "initial_prompt": "Это речевая транскрипция на русском языке без субтитров, водяных знаков и кредитов.",
             }
 

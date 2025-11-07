@@ -1,5 +1,4 @@
 import gc
-import re
 
 import torch
 import whisperx
@@ -8,19 +7,6 @@ from whisperx.types import SingleSegment
 
 from src.transcription import log
 from src.transcription.enums import Language, Model
-
-HALLUCINATION_PHRASES = [
-    "Субтитры делал DimaTorzok",
-    "Субтитры подогнал Симон",
-    "Редактор субтитров",
-    "Перевод",
-    "Субтитры сделал",
-    "субтитры",
-    "DimaTorzok",
-    "Targum",
-    "подогнал",
-]
-
 
 class SpeechTranscription:
     """
@@ -91,7 +77,6 @@ class SpeechTranscription:
         try:
             asr_options = {
                 "temperatures": [0.0],
-                "initial_prompt": "Это речевая транскрипция на русском языке без субтитров, водяных знаков и кредитов.",
             }
 
             vad_options = {
@@ -112,25 +97,6 @@ class SpeechTranscription:
         except Exception as e:
             log.error("Failed to load model %s: %s", model_name, e)
             raise e
-
-    @staticmethod
-    def _clean_text(text: str) -> str:
-        if not text:
-            return text
-        for phrase in HALLUCINATION_PHRASES:
-            text = re.sub(re.escape(phrase), "", text, flags=re.IGNORECASE)
-        text = re.sub(r'\b(\w+)\s+\1\b', r'\1', text, flags=re.IGNORECASE)
-        text = re.sub(r'\s+', ' ', text).strip()
-        return text
-
-    def _filter_segments(self, segments: list[SingleSegment]) -> list[SingleSegment]:
-        filtered = []
-        for seg in segments:
-            if "text" in seg:
-                seg["text"] = self._clean_text(seg["text"])
-            if seg.get("text", "").strip():
-                filtered.append(seg)
-        return filtered
 
     def transcribe(
         self,
@@ -176,11 +142,7 @@ class SpeechTranscription:
             raise e
 
         segments = result.get("segments", [])
-        filtered_segments = self._filter_segments(segments)
-
-        log.debug("Final segments after filtering: %d (из %d)", len(filtered_segments),
-                  len(segments))
-        return filtered_segments
+        return segments
 
     def clean(self) -> None:
         """

@@ -21,9 +21,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
         },
     },
 )
-async def get_user(
-    user_id: str, service: UserServiceDep, admin: CurrentAdminDep
-) -> User:
+async def get_user(user_id: str, service: UserServiceDep, admin: CurrentAdminDep) -> User:
     try:
         user_uuid = UUID(user_id)
     except ValueError as err:
@@ -48,14 +46,10 @@ async def get_user(
     summary="List all users",
     description="Retrieve a list of all registered users",
     responses={
-        status.HTTP_200_OK: {
-            "description": "List of all users returned successfully"
-        },
+        status.HTTP_200_OK: {"description": "List of all users returned successfully"},
     },
 )
-async def get_all_users(
-    service: UserServiceDep, admin: CurrentAdminDep
-) -> UserList:
+async def get_all_users(service: UserServiceDep, admin: CurrentAdminDep) -> UserList:
     users = await service.list()
     return UserList(users=users)
 
@@ -68,9 +62,7 @@ async def get_all_users(
     Register a new user in the system
     """,
     responses={
-        status.HTTP_201_CREATED: {
-            "description": "User was created successfully"
-        },
+        status.HTTP_201_CREATED: {"description": "User was created successfully"},
     },
 )
 async def create_user(user: UserCreate, service: UserServiceDep) -> User:

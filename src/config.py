@@ -4,6 +4,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
 
+    LOG_LEVEL: str = "INFO"
+    ENV: str = "prod"
+    ROOT_PATH: str = "/speech-transcription/api/v1"
+
     DB_HOST: str
     DB_PORT: int
     DB_NAME: str
@@ -19,6 +23,11 @@ class Settings(BaseSettings):
     DEVICE: str = "cpu"
     COMPUTE_TYPE: str = "float32"
     DOWNLOAD_ROOT: str = "models"
+    BATCH_SIZE: int = 4
+    CHUNK_SIZE: int = 10
+
+    ADMIN_USERNAME_DEFAULT: str = "admin"
+    ADMIN_PASSWORD_DEFAULT: str = "password"
 
     @property
     def DB_URL(self) -> str:

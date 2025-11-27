@@ -1,11 +1,12 @@
 import os
 import shutil
+import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
 from fastapi import UploadFile
 
-from src.transcription import log
+from src import log
 
 
 def save_upload_file(upload_file: UploadFile, dir_save: str = "files") -> str:
@@ -24,7 +25,8 @@ def save_upload_file(upload_file: UploadFile, dir_save: str = "files") -> str:
 
     os.makedirs(dir_save, exist_ok=True)
 
-    safe_filename = os.path.basename(upload_file.filename)
+    safe_filename = str(uuid.uuid4())
+
     path = Path(dir_save) / safe_filename
 
     try:

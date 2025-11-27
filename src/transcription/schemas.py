@@ -22,3 +22,15 @@ class TranscriptionSrtResult(BaseModel):
 
 class TranscriptionTextResult(BaseModel):
     text: str
+
+
+class WordSegment(BaseModel):
+    word: str
+    start: float
+    end: float
+    score: float
+
+
+class TranscriptionFullResult(BaseModel):
+    segments: list[Segment]
+    words: list[WordSegment] | None

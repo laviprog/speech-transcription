@@ -9,6 +9,11 @@ node_modules/
 
 .vscode/
 .idea/
+.github
+.gitignore
+README.md
+pytest.ini
+LICENSE
 
 *.log
 *.bak
@@ -21,6 +26,8 @@ htmlcov/
 
 .env.*
 docker-compose.yml
+docker/
+.dockerignore
 
 .DS_Store
 Thumbs.db

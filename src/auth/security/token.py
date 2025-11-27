@@ -48,20 +48,12 @@ def create_tokens(token_payload: TokenPayload) -> tuple[str, str]:
     return access_token, refresh_token
 
 
-def parse_token_payload(
-    payload: dict[str, Any], error_detail: str
-) -> TokenPayload:
+def parse_token_payload(payload: dict[str, Any], error_detail: str) -> TokenPayload:
     user_id: str | None = payload.get("id")
     role_value = payload.get("role")
 
-    if (
-        not user_id
-        or not role_value
-        or role_value not in Role._value2member_map_
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=error_detail
-        )
+    if not user_id or not role_value or role_value not in Role._value2member_map_:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=error_detail)
 
     return TokenPayload(id=UUID(user_id), role=Role(role_value))
 

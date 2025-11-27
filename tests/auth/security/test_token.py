@@ -30,9 +30,7 @@ def test_create_token_returns_valid_jwt(token_payload):
     data = {"id": str(token_payload.id), "role": token_payload.role.value}
     token = create_token(data, settings.SECRET_KEY, timedelta(minutes=5))
 
-    decoded = jwt.decode(
-        token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-    )
+    decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
     assert decoded["id"] == str(token_payload.id)
     assert decoded["role"] == token_payload.role.value
     assert "exp" in decoded

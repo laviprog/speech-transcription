@@ -1,9 +1,9 @@
 services:
-  speech-transcription:
+  speech-transcription-api:
     build:
       context: .
-      dockerfile: Dockerfile # ← Change to Dockerfile.cuda for CUDA build
-    container_name: speech-transcription
+      dockerfile: doker/Dockerfile # docker/Dockerfile.cuda for CUDA build
+    container_name: speech-transcription-api
     image: speech-transcription
     ports:
       - "127.0.0.1:8000:8000"
@@ -13,28 +13,17 @@ services:
       - postgres-speech-transcription
     networks:
       - speech-transcription-network
+    #deploy:
+    #  resources:
+    #    reservations:
+    #      devices:
+    #        - driver: nvidia
+    #          capabilities: [gpu]
+    #          device_ids: ["0"]
 
-    # 🟡 GPU SUPPORT (CUDA):
-    # If you want to enable GPU acceleration, follow these steps:
-    # 1. Change the `dockerfile:` to `Dockerfile.cuda`
-    # 2. Make sure you have NVIDIA Container Toolkit installed: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/
-    # 3. Uncomment ONE of the options below depending on your Docker setup
-
-    # ✅ Option A: Standard Docker Compose (recommended)
-    # runtime: nvidia
-
-    # 🔁 Option B: Only for Docker Swarm mode (will be ignored in normal compose)
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: all
-    #           capabilities: [gpu]
-
-  postgres-speech-transcription:
+  speech-transcription-postgres:
     image: postgres:15
-    container_name: postgres-speech-transcription
+    container_name: speech-transcription-postgres
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_USER: ${DB_USER}
@@ -43,7 +32,34 @@ services:
       - "127.0.0.1:5432:5432"
     networks:
       - speech-transcription-network
+    volumes:
+      - speech-transcription-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  speech-transcription-migrate:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.migrate
+    image: speech-transcription-migrate:latest
+    container_name: speech-transcription-migrate
+    env_file:
+      - .env
+    networks:
+      - speech-transcription-network
+    depends_on:
+      speech-transcription-postgres:
+        condition: service_healthy
+    restart: no
 
 networks:
   speech-transcription-network:
     external: true
+
+volumes:
+  speech-transcription-data:
+    name: speech-transcription-data

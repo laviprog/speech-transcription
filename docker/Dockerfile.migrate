@@ -1,0 +1,11 @@
+FROM ghcr.io/astral-sh/uv:python3.10-bookworm-slim
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+
+RUN uv sync --frozen --no-dev
+
+COPY . .
+
+CMD [ "uv", "run", "alembic", "upgrade", "head" ]

@@ -1,9 +1,8 @@
 from enum import Enum
 
 from advanced_alchemy.base import UUIDAuditBase
-from sqlalchemy import Boolean
+from sqlalchemy import Boolean, String
 from sqlalchemy import Enum as SQLAlchemyEnum
-from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
 

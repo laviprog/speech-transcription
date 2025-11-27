@@ -1,13 +1,13 @@
-from typing import Union
-
 from fastapi import UploadFile
-from whisperx.types import SingleSegment
+from whisperx.types import SingleSegment, SingleWordSegment
 
 from src.transcription.enums import Language, Model, ResultFormat
 from src.transcription.schemas import (
     Segment,
+    TranscriptionFullResult,
     TranscriptionSrtResult,
     TranscriptionTextResult,
+    WordSegment,
 )
 from src.transcription.speech_transcription import SpeechTranscription
 from src.transcription.utils import temporary_audio_file
@@ -23,7 +23,9 @@ class SpeechTranscriptionService:
         model: Model = Model.SMALL,
         language: Language | None = None,
         format_result: ResultFormat = ResultFormat.TEXT,
-    ) -> Union[TranscriptionTextResult, TranscriptionSrtResult]:
+        align_mode: bool = True,
+        audio_preprocessing: bool = True,
+    ) -> TranscriptionTextResult | TranscriptionSrtResult | TranscriptionFullResult:
         """
         Transcribes speech from an uploaded audio file and returns the result
         in the specified format.
@@ -31,18 +33,45 @@ class SpeechTranscriptionService:
         :param file: Uploaded audio file to be processed.
         :param model: Transcription model to use (e.g., Model.SMALL, Model.MEDIUM).
         :param language: Optional language enum value (e.g., Language.EN, Language.RU).
-        :param format_result: Output format for the transcription result (e.g., ResultFormat.TEXT, ResultFormat.SRT).
+        :param format_result: Output format for the transcription result.
+        :param align_mode: Whether to enable alignment mode for better timestamps.
+        :param audio_preprocessing: Whether to apply audio preprocessing before transcription.
 
         :return: A transcription result in the selected format (text or subtitle).
         """
-        segments = self._transcribe(file, model, language)
+        words: list[SingleWordSegment] | None = None
+        if align_mode:
+            segments, words = self._transcribe(
+                file=file,
+                model=model,
+                language=language,
+                align_mode=align_mode,
+                audio_preprocessing=audio_preprocessing,
+            )
+        else:
+            segments = self._transcribe(
+                file=file,
+                model=model,
+                language=language,
+                align_mode=align_mode,
+                audio_preprocessing=audio_preprocessing,
+            )
 
-        if format_result == ResultFormat.TEXT:
-            text = self._to_text(segments)
-            return TranscriptionTextResult(text=text)
-
-        srt = self._to_srt(segments)
-        return TranscriptionSrtResult(srt=srt)
+        match format_result:
+            case ResultFormat.TEXT:
+                text = self._to_text(segments)
+                return TranscriptionTextResult(text=text)
+            case ResultFormat.SRT:
+                srt = self._to_srt(segments)
+                return TranscriptionSrtResult(srt=srt)
+            case ResultFormat.FULL:
+                segments = self._to_srt(segments)
+                return TranscriptionFullResult(
+                    segments=segments,
+                    words=[WordSegment(**word) for word in words] if words else None,
+                )
+            case _:
+                raise ValueError(f"Unsupported result format: {format_result}")
 
     @staticmethod
     def _to_text(segments: list[SingleSegment]) -> str:
@@ -79,7 +108,9 @@ class SpeechTranscriptionService:
         file: UploadFile,
         model: Model = Model.SMALL,
         language: Language | None = None,
-    ) -> list[SingleSegment]:
+        align_mode: bool = True,
+        audio_preprocessing: bool = True,
+    ) -> list[SingleSegment] | tuple[list[SingleSegment], list[SingleWordSegment]]:
         """
         Transcribes from the uploaded audio file using the specified model and language.
 
@@ -88,13 +119,19 @@ class SpeechTranscriptionService:
         :param file: Uploaded audio file to be processed.
         :param model: Transcription model to use (e.g., Model.SMALL, Model.MEDIUM).
         :param language: Optional language enum value (e.g., Language.EN, Language.RU).
+        :param align_mode: Whether to enable alignment mode for better timestamps.
+        :param audio_preprocessing: Whether to apply audio preprocessing before transcription.
 
         :return: List of transcribed segments containing transcribed text and timestamps.
         """
 
         with temporary_audio_file(file) as path:
             return self._transcriber.transcribe(
-                audio_file=path, model=model, language=language
+                audio_file=path,
+                model=model,
+                language=language,
+                align_mode=align_mode,
+                audio_preprocessing=audio_preprocessing,
             )
 
     def clean(self):

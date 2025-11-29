@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "asyncpg>=0.30.0",
-    "alembic>=1.17.2",
+    "advanced-alchemy>=1.4.1",
     "pydantic-settings>=2.9.1",
 ]
 
@@ -21,7 +21,6 @@ api = [
     "python-multipart>=0.0.12",
     "scalar-fastapi>=1.0.3",
     "pyjwt>=2.10.1",
-    "advanced-alchemy>=1.4.1",
     "srt>=3.5.3",
 ]
 

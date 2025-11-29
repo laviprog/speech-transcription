@@ -3328,14 +3328,13 @@ name = "speech-transcription"
 version = "0.0.2"
 source = { virtual = "." }
 dependencies = [
-    { name = "alembic" },
+    { name = "advanced-alchemy" },
     { name = "asyncpg" },
     { name = "pydantic-settings" },
 ]
 
 [package.optional-dependencies]
 api = [
-    { name = "advanced-alchemy" },
     { name = "fastapi" },
     { name = "passlib", extra = ["argon2"] },
     { name = "pydantic" },
@@ -3372,8 +3371,7 @@ transcription = [
 
 [package.metadata]
 requires-dist = [
-    { name = "advanced-alchemy", marker = "extra == 'api'", specifier = ">=1.4.1" },
-    { name = "alembic", specifier = ">=1.17.2" },
+    { name = "advanced-alchemy", specifier = ">=1.4.1" },
     { name = "alembic", marker = "extra == 'migrate'", specifier = ">=1.17.2" },
     { name = "asyncpg", specifier = ">=0.30.0" },
     { name = "asyncpg", marker = "extra == 'migrate'", specifier = ">=0.30.0" },

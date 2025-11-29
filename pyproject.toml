@@ -8,13 +8,13 @@ dependencies = [
     "asyncpg>=0.30.0",
     "advanced-alchemy>=1.4.1",
     "pydantic-settings>=2.9.1",
+    "structlog>=25.5.0",
 ]
 
 [project.optional-dependencies]
 api = [
     "fastapi>=0.115.12",
     "uvicorn>=0.34.2",
-    "structlog>=25.5.0",
     "pydantic>=2.11.4",
     "passlib[argon2]>=1.7.4",
     "pyjwt>=2.10.1",

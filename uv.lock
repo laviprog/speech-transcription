@@ -3331,6 +3331,7 @@ dependencies = [
     { name = "advanced-alchemy" },
     { name = "asyncpg" },
     { name = "pydantic-settings" },
+    { name = "structlog" },
 ]
 
 [package.optional-dependencies]
@@ -3342,7 +3343,6 @@ api = [
     { name = "python-multipart" },
     { name = "scalar-fastapi" },
     { name = "srt" },
-    { name = "structlog" },
     { name = "uvicorn" },
 ]
 dev = [
@@ -3390,7 +3390,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14.0" },
     { name = "scalar-fastapi", marker = "extra == 'api'", specifier = ">=1.0.3" },
     { name = "srt", marker = "extra == 'api'", specifier = ">=3.5.3" },
-    { name = "structlog", marker = "extra == 'api'", specifier = ">=25.5.0" },
+    { name = "structlog", specifier = ">=25.5.0" },
     { name = "uvicorn", marker = "extra == 'api'", specifier = ">=0.34.2" },
     { name = "whisperx", marker = "extra == 'transcription'", specifier = ">=3.3.1" },
 ]

@@ -16,7 +16,6 @@ from whisperx.types import (
 )
 
 from src import log
-from src.config import settings
 from src.transcription.enums import Language, Model
 
 
@@ -62,7 +61,7 @@ class SpeechTranscription:
         """
         Preloads specified ASR models into cache.
         """
-        self._audio_separator_model.load_model('UVR-MDX-NET-Voc_FT.onnx')
+        self._audio_separator_model.load_model("UVR-MDX-NET-Voc_FT.onnx")
         for lang in Language.values():
             self._load_align(lang_code=lang)
         for model in asr_models or [Model.SMALL]:
@@ -212,7 +211,9 @@ class SpeechTranscription:
                 "Vocals": str(uuid.uuid4()),
                 "Instrumental": str(uuid.uuid4()),
             }
-            output_files = self._audio_separator_model.separate(audio_file_path=audio_file, custom_output_names=output_names)
+            output_files = self._audio_separator_model.separate(
+                audio_file_path=audio_file, custom_output_names=output_names
+            )
             log.debug("Audio separation completed", output_files=output_files)
             audio = self._load_audio(output_files[1])
 

@@ -15,7 +15,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> TokenPayload:
 
 
 async def get_current_admin(
-    user_data: TokenPayload = Depends(get_current_user),
+    user_data: Annotated[TokenPayload, Depends(get_current_user)],
 ):
     if user_data.role != Role.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")

@@ -3360,6 +3360,7 @@ test = [
     { name = "pytest-asyncio" },
 ]
 transcription = [
+    { name = "audio-separator" },
     { name = "librosa" },
     { name = "whisperx" },
 ]
@@ -3376,6 +3377,7 @@ requires-dist = [
     { name = "alembic", marker = "extra == 'migrate'", specifier = ">=1.17.2" },
     { name = "asyncpg", specifier = ">=0.30.0" },
     { name = "asyncpg", marker = "extra == 'migrate'", specifier = ">=0.30.0" },
+    { name = "audio-separator", marker = "extra == 'transcription'", specifier = "==0.39.1" },
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.115.12" },
     { name = "freezegun", marker = "extra == 'test'", specifier = ">=1.5.1" },
     { name = "httpx", marker = "extra == 'test'", specifier = ">=0.28.1" },

@@ -2,7 +2,7 @@ services:
   speech-transcription-api:
     build:
       context: .
-      dockerfile: doker/Dockerfile # docker/Dockerfile.cuda for CUDA build
+      dockerfile: docker/Dockerfile # docker/Dockerfile.cuda for CUDA build
     container_name: speech-transcription-api
     image: speech-transcription
     ports:
@@ -10,7 +10,7 @@ services:
     env_file:
       - .env
     depends_on:
-      - postgres-speech-transcription
+      - speech-transcription-postgres
     networks:
       - speech-transcription-network
     #deploy:
@@ -18,7 +18,7 @@ services:
     #    reservations:
     #      devices:
     #        - driver: nvidia
-    #          capabilities: [gpu]
+    #          capabilities: ["gpu"]
     #          device_ids: ["0"]
 
   speech-transcription-postgres:

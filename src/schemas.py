@@ -1,10 +1,12 @@
-from pydantic import BaseModel
+from datetime import datetime, timezone
+
+from pydantic import BaseModel, Field
 
 
 class BaseSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class HealthCheck(BaseSchema):
+class HealthCheck(BaseModel):
     status: str = "ok"
-    timestamp: str
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

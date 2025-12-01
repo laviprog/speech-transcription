@@ -13,6 +13,8 @@ services:
       - speech-transcription-postgres
     networks:
       - speech-transcription-network
+    volumes:
+      - ./models:/app/models
     #deploy:
     #  resources:
     #    reservations:

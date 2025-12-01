@@ -31,3 +31,5 @@ docker/
 
 .DS_Store
 Thumbs.db
+models
+files

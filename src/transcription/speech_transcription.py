@@ -147,7 +147,7 @@ class SpeechTranscription:
         log.debug(
             "Transcribing...",
             model=model.value,
-            language=language.value,
+            language=language.value if language else None,
             batch_size=self._batch_size,
             chuck_size=self._chunk_size,
         )

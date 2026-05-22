@@ -1,6 +1,8 @@
 import gc
 import os
 import uuid
+from collections import OrderedDict
+from typing import Any
 
 import torch
 from audio_separator.separator import Separator
@@ -18,6 +20,8 @@ from whisperx.types import (
 from src import log
 from src.transcription.enums import Language, Model
 
+AlignModelCacheEntry = tuple[Any, Any]
+
 
 class SpeechTranscription:
     """
@@ -32,6 +36,7 @@ class SpeechTranscription:
         batch_size: int = 4,
         chunk_size: int = 10,
         init_asr_models: list[Model] | None = None,
+        max_align_models: int = 4,
     ):
         """
         Initializes the SpeechTranscription with device configuration
@@ -43,10 +48,13 @@ class SpeechTranscription:
         :param init_asr_models: Optional list of asr models to preload at startup.
         :param batch_size: Batch size for inference.
         :param chunk_size: Chunk size (in seconds) for audio splitting.
+        :param max_align_models: Maximum number of alignment models to keep in memory.
         """
+        if max_align_models < 1:
+            raise ValueError("max_align_models must be greater than 0")
 
         self.__asr_cache: dict[str, FasterWhisperPipeline] = {}
-        self.__align_cache: dict[str, tuple] = {}
+        self.__align_cache: OrderedDict[str, AlignModelCacheEntry] = OrderedDict()
         self._audio_separator_model: Separator = Separator(model_file_dir=download_root)
 
         self._device = device
@@ -54,6 +62,7 @@ class SpeechTranscription:
         self._download_root = download_root
         self._batch_size = batch_size
         self._chunk_size = chunk_size
+        self._max_align_models = max_align_models
 
         self._load_models(init_asr_models)
 
@@ -62,8 +71,8 @@ class SpeechTranscription:
         Preloads specified ASR models into cache.
         """
         self._audio_separator_model.load_model("UVR-MDX-NET-Voc_FT.onnx")
-        self._load_align(lang_code=Language.ENGLISH)
-        self._load_align(lang_code=Language.RUSSIAN)
+        self._load_align(lang_code=Language.ENGLISH.value)
+        self._load_align(lang_code=Language.RUSSIAN.value)
         for model in asr_models or [Model.SMALL]:
             self._load_asr(model)
 
@@ -85,7 +94,7 @@ class SpeechTranscription:
             log.error("Failed to load ASR model", model_name=model, error=str(e))
             raise e
 
-    def _load_align(self, lang_code: str) -> None:
+    def _load_align(self, lang_code: str) -> AlignModelCacheEntry:
         """
         Loads an alignment model and stores it in the cache.
         """
@@ -96,11 +105,62 @@ class SpeechTranscription:
                 device=self._device,
                 model_dir=self._download_root,
             )
-            self.__align_cache[lang_code] = (align_model, metadata)
-            log.debug("Align model loaded", lang_code=lang_code)
+            cache_entry = (align_model, metadata)
+            previous_cache_entry = self.__align_cache.pop(lang_code, None)
+            self.__align_cache[lang_code] = cache_entry
+            if previous_cache_entry:
+                self._release_align_model(
+                    lang_code=lang_code,
+                    cache_entry=previous_cache_entry,
+                )
+                del previous_cache_entry
+                self._clean_released_align_memory()
+            self._evict_align_models_if_needed()
+            log.debug(
+                "Align model loaded",
+                lang_code=lang_code,
+                cached_align_models=len(self.__align_cache),
+                max_align_models=self._max_align_models,
+            )
+            return cache_entry
         except Exception as e:
             log.error("Failed to load align model", lang_code=lang_code, error=str(e))
             raise e
+
+    def _evict_align_models_if_needed(self) -> None:
+        """
+        Evicts least recently used alignment models when the cache exceeds the limit.
+        """
+        released_models = False
+        while len(self.__align_cache) > self._max_align_models:
+            lang_code, cache_entry = self.__align_cache.popitem(last=False)
+            log.info(
+                "Evicting align model from cache",
+                lang_code=lang_code,
+                cached_align_models=len(self.__align_cache),
+                max_align_models=self._max_align_models,
+            )
+            self._release_align_model(lang_code=lang_code, cache_entry=cache_entry)
+            del cache_entry
+            released_models = True
+
+        if released_models:
+            self._clean_released_align_memory()
+
+    def _release_align_model(self, lang_code: str, cache_entry: AlignModelCacheEntry) -> None:
+        """
+        Releases references to an alignment model and frees available accelerator memory.
+        """
+        align_model, metadata = cache_entry
+        del align_model, metadata, cache_entry
+        log.debug("Align model released", lang_code=lang_code)
+
+    def _clean_released_align_memory(self) -> None:
+        """
+        Frees Python and CUDA memory after alignment model references were dropped.
+        """
+        gc.collect()
+        self._clean_cuda()
 
     def _get_asr(self, model: Model) -> FasterWhisperPipeline:
         """
@@ -110,13 +170,14 @@ class SpeechTranscription:
             self._load_asr(model)
         return self.__asr_cache[model.value]
 
-    def _get_align(self, lang_code: str):
+    def _get_align(self, lang_code: str) -> AlignModelCacheEntry:
         """
         Retrieves the alignment model for the specified language code from cache or loads it
         if not present.
         """
         if lang_code not in self.__align_cache:
-            self._load_align(lang_code=lang_code)
+            return self._load_align(lang_code=lang_code)
+        self.__align_cache.move_to_end(lang_code)
         return self.__align_cache[lang_code]
 
     @staticmethod

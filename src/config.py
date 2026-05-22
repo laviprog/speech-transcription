@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     DOWNLOAD_ROOT: str = "models"
     BATCH_SIZE: int = 4
     CHUNK_SIZE: int = 10
+    ALIGN_CACHE_MAX_SIZE: int = 4
 
     ADMIN_USERNAME_DEFAULT: str = "admin"
     ADMIN_PASSWORD_DEFAULT: str = "password"

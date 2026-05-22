@@ -62,8 +62,8 @@ class SpeechTranscription:
         Preloads specified ASR models into cache.
         """
         self._audio_separator_model.load_model("UVR-MDX-NET-Voc_FT.onnx")
-        for lang in Language.values():
-            self._load_align(lang_code=lang)
+        self._load_align(lang_code=Language.ENGLISH)
+        self._load_align(lang_code=Language.RUSSIAN)
         for model in asr_models or [Model.SMALL]:
             self._load_asr(model)
 

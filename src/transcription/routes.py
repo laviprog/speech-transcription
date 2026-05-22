@@ -82,7 +82,7 @@ async def transcribe(
         ResultFormat, Form(description="Desired format of the result")
     ] = ResultFormat.FULL,
     align_mode: Annotated[bool, Form(description="Enable word-level timestamp alignment")] = True,
-    audio_preprocessing: Annotated[bool, Form(description="Enable audio preprocessing")] = True,
+    audio_preprocessing: Annotated[bool, Form(description="Enable audio preprocessing")] = False,
 ) -> TranscriptionSrtResult | TranscriptionTextResult | TranscriptionFullResult:
     """
     Transcribe speech from uploaded audio file.

@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
         download_root=settings.DOWNLOAD_ROOT,
         batch_size=settings.BATCH_SIZE,
         chunk_size=settings.CHUNK_SIZE,
-        init_asr_models=[Model.SMALL],
+        init_asr_models=[Model.TURBO, Model.LARGE_V3],
     )
 
     transcription_service = SpeechTranscriptionService(transcriber=transcriber)

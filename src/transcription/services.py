@@ -24,7 +24,7 @@ class SpeechTranscriptionService:
         language: Language | None = None,
         format_result: ResultFormat = ResultFormat.TEXT,
         align_mode: bool = True,
-        audio_preprocessing: bool = True,
+        audio_preprocessing: bool = False,
     ) -> TranscriptionTextResult | TranscriptionSrtResult | TranscriptionFullResult:
         """
         Transcribes speech from an uploaded audio file and returns the result
@@ -109,7 +109,7 @@ class SpeechTranscriptionService:
         model: Model = Model.SMALL,
         language: Language | None = None,
         align_mode: bool = True,
-        audio_preprocessing: bool = True,
+        audio_preprocessing: bool = False,
     ) -> list[SingleSegment] | tuple[list[SingleSegment], list[SingleWordSegment]]:
         """
         Transcribes from the uploaded audio file using the specified model and language.

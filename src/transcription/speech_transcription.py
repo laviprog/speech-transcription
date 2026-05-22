@@ -178,6 +178,7 @@ class SpeechTranscription:
         """
         Aligns the transcription segments with the audio using the alignment model.
         """
+        log.debug("Aligning segments...")
         try:
             align_model, metadata = self._get_align(language)
             return align(
